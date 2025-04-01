@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'student' | 'educator' | 'researcher';
 
 export type User = {
@@ -49,6 +48,19 @@ export type Diagram = {
   source?: string;
   author?: string;
   year?: number;
+};
+
+const complexityLevels = ["Basic", "Intermediate", "Advanced"] as const;
+type ComplexityLevel = typeof complexityLevels[number];
+
+const filterByComplexity = (diagrams: Diagram[], complexity: string): Diagram[] => {
+  if (!complexity) return diagrams;
+  
+  const validComplexity = complexityLevels.includes(complexity as ComplexityLevel) 
+    ? complexity as ComplexityLevel 
+    : "Basic";
+  
+  return diagrams.filter(diagram => diagram.complexity === validComplexity);
 };
 
 // Generate 50 mock diagrams

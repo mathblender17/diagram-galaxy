@@ -1,103 +1,82 @@
-
-import { useState } from "react";
-import { Layout } from "@/components/layout/Layout";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Grid3x3, 
-  Flask, 
-  Dna, 
-  Cells, 
-  ArrowRight, 
-  Microscope,
-  TreePine 
-} from "lucide-react";
-
-const categories = [
-  {
-    id: "cellular-structure",
-    name: "Cellular Structure",
-    description: "Diagrams showing the internal and external structures of bacterial cells",
-    icon: Cells,
-    color: "bg-blue-500",
-    count: 12,
-  },
-  {
-    id: "metabolic-pathways",
-    name: "Metabolic Pathways",
-    description: "Visual representations of biochemical reactions and metabolic processes in bacteria",
-    icon: Flask,
-    color: "bg-green-500",
-    count: 8,
-  },
-  {
-    id: "bacterial-morphology",
-    name: "Bacterial Morphology",
-    description: "Diagrams illustrating different shapes and arrangements of bacteria",
-    icon: Microscope,
-    color: "bg-purple-500",
-    count: 10,
-  },
-  {
-    id: "bacterial-genetics",
-    name: "Bacterial Genetics",
-    description: "Visual explanations of genetic processes and structures in bacteria",
-    icon: Dna,
-    color: "bg-pink-500",
-    count: 7,
-  },
-  {
-    id: "bacterial-reproduction",
-    name: "Bacterial Reproduction",
-    description: "Diagrams showing how bacteria reproduce and multiply",
-    icon: Grid3x3,
-    color: "bg-orange-500",
-    count: 6,
-  },
-  {
-    id: "bacterial-ecology",
-    name: "Bacterial Ecology",
-    description: "Illustrations of how bacteria interact with their environment and other organisms",
-    icon: TreePine,
-    color: "bg-teal-500",
-    count: 7,
-  }
-];
+import { Layout } from "@/components/layout/Layout";
+import { api } from "@/services/api";
+import { Category } from "@/data/diagramsData";
+import { Separator } from "@/components/ui/separator";
+import { Beaker, BookOpen, Microscope, BookIcon, BarChart, LineChart } from "lucide-react";
 
 export default function Categories() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const data = await api.categories.getAll();
+        setCategories(data);
+      } catch (e: any) {
+        setError(e.message || "Failed to fetch categories");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Get icon component based on category name
+  const getCategoryIcon = (name: string) => {
+    const iconProps = { className: "h-10 w-10 text-primary mb-2" };
+    
+    switch (name.toLowerCase()) {
+      case "bacteria":
+        return <Microscope {...iconProps} />;
+      case "anatomy":
+        return <BookIcon {...iconProps} />;
+      case "chemistry":
+        return <Beaker {...iconProps} />;
+      case "physics":
+        return <BarChart {...iconProps} />;
+      case "mathematics":
+        return <LineChart {...iconProps} />;
+      default:
+        return <BookOpen {...iconProps} />;
+    }
+  };
+
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Diagram Categories</h1>
-        <p className="text-gray-600">
-          Browse our collection of bacteria-related diagrams by category
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category) => (
-          <Link
-            key={category.id}
-            to={`/category/${category.id}`}
-            className="block bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1"
-          >
-            <div className={`h-24 ${category.color} flex items-center justify-center`}>
-              <category.icon className="h-12 w-12 text-white" />
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-2 flex items-center justify-between">
-                {category.name}
-                <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                  {category.count} diagrams
-                </span>
-              </h2>
-              <p className="text-gray-600 mb-4">{category.description}</p>
-              <div className="flex items-center text-primary font-medium">
-                Explore category
-                <ArrowRight className="ml-2 h-4 w-4" />
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-6">
+          <h1 className="text-3xl font-semibold text-gray-800">Categories</h1>
+          <p className="text-gray-500">Explore diagrams by category</p>
+        </header>
+
+        <Separator className="my-4" />
+
+        {isLoading && <p className="text-center">Loading categories...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              to={`/category/${category.id}`}
+              className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            >
+              <div className="flex flex-col items-center">
+                {getCategoryIcon(category.name)}
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">{category.name}</h2>
+                <p className="text-gray-500 text-center">
+                  {category.description || "No description available"}
+                </p>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
     </Layout>
   );

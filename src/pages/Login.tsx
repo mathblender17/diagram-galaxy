@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Mail, Lock, Github, Google } from "lucide-react";
+import { BookOpen, Mail, Lock, Github, Globe } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -116,7 +116,7 @@ export default function Login() {
                 onClick={() => handleOAuthLogin("Google")}
                 className="w-full"
               >
-                <Google className="mr-2 h-4 w-4" />
+                <Globe className="mr-2 h-4 w-4" />
                 Google
               </Button>
               <Button

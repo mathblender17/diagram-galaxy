@@ -12,7 +12,7 @@ import {
   RadioGroupItem 
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Mail, Lock, User, Github, Google } from "lucide-react";
+import { BookOpen, Mail, Lock, User, Github, Globe } from "lucide-react";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -182,7 +182,7 @@ export default function Register() {
                 onClick={() => handleOAuthRegister("Google")}
                 className="w-full"
               >
-                <Google className="mr-2 h-4 w-4" />
+                <Globe className="mr-2 h-4 w-4" />
                 Google
               </Button>
               <Button

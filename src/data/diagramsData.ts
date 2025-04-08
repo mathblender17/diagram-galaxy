@@ -1,3 +1,4 @@
+
 export type Role = 'admin' | 'student' | 'educator' | 'researcher';
 
 export type User = {
@@ -27,6 +28,12 @@ export type DiagramCategory =
   | 'Bacterial Genetics' 
   | 'Bacterial Reproduction'
   | 'Bacterial Ecology';
+
+export type Category = {
+  id: string;
+  name: string;
+  description: string;
+};
 
 export type Diagram = {
   id: string;
@@ -181,6 +188,16 @@ const generateMockDiagrams = (): Diagram[] => {
 };
 
 export const mockDiagrams = generateMockDiagrams();
+
+// Generate categories from the unique DiagramCategory values in the diagrams
+export const mockCategories: Category[] = [
+  { id: 'cat-1', name: 'Cellular Structure', description: 'Diagrams showing the cellular structure of various bacteria' },
+  { id: 'cat-2', name: 'Metabolic Pathways', description: 'Diagrams illustrating bacterial metabolic processes' },
+  { id: 'cat-3', name: 'Bacterial Morphology', description: 'Visual representations of bacterial shapes and forms' },
+  { id: 'cat-4', name: 'Bacterial Genetics', description: 'Diagrams of bacterial DNA, plasmids, and genetic processes' },
+  { id: 'cat-5', name: 'Bacterial Reproduction', description: 'Illustrations of bacterial reproduction mechanisms' },
+  { id: 'cat-6', name: 'Bacterial Ecology', description: 'Diagrams showing bacterial interactions with environments' }
+];
 
 export const getMockCurrentUser = (): User => {
   return {

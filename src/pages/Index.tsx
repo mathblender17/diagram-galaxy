@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { DiagramGrid } from "@/components/diagrams/DiagramGrid";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,27 @@ import {
   MessageSquare, 
   FileText 
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Helper function to get URL query parameters
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
+  const query = useQuery();
+  const searchParam = query.get('search');
+  
+  useEffect(() => {
+    if (searchParam) {
+      setSearchQuery(searchParam);
+      setIsSearching(true);
+    }
+  }, [searchParam]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,12 +74,13 @@ export default function Index() {
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/categories">
                 <Button variant="secondary" size="lg" className="rounded-full">
-                  Browse Categories
+                  Browse All Diagrams
                 </Button>
               </Link>
               {user ? (
                 <Link to="/upload">
-                  <Button variant="outline" size="lg" className="rounded-full text-white border-white hover:bg-white/20">
+                  <Button size="lg" className="rounded-full bg-primary text-white hover:bg-primary/90">
+                    <Upload className="mr-2 h-5 w-5" />
                     Upload Diagram
                   </Button>
                 </Link>
@@ -153,7 +168,7 @@ export default function Index() {
                   </p>
                   {user ? (
                     <Link to="/upload">
-                      <Button size="lg" variant="secondary">
+                      <Button size="lg" variant="secondary" className="flex items-center">
                         <Upload className="mr-2 h-5 w-5" />
                         Upload Your Diagram
                       </Button>

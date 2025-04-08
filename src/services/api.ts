@@ -1,5 +1,5 @@
 
-import { Diagram, mockDiagrams, CitationFormat, generateCitation } from "../data/diagramsData";
+import { Diagram, mockDiagrams, CitationFormat, generateCitation, mockCategories, Category } from "../data/diagramsData";
 
 // Mock API service
 export const api = {
@@ -170,6 +170,14 @@ export const api = {
     getUnapprovedDiagrams: async (): Promise<Diagram[]> => {
       await new Promise(resolve => setTimeout(resolve, 400));
       return mockDiagrams.filter(diagram => !diagram.approved);
+    },
+  },
+  
+  // Category operations
+  categories: {
+    getAll: async (): Promise<Category[]> => {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return mockCategories;
     },
   },
   

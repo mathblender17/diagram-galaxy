@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ export function Navbar() {
   const { user, logout, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -25,9 +26,9 @@ export function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement search functionality
-    console.log("Searching for:", searchQuery);
-    // You could redirect to a search results page here
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
+    }
   };
 
   return (
@@ -48,7 +49,7 @@ export function Navbar() {
               Home
             </Link>
             <Link to="/categories" className="text-gray-700 hover:text-primary transition-colors">
-              Categories
+              Browse All
             </Link>
             {user && (
               <Link to="/upload" className="text-gray-700 hover:text-primary transition-colors">
@@ -168,7 +169,7 @@ export function Navbar() {
               className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
               onClick={toggleMenu}
             >
-              Categories
+              Browse All
             </Link>
             {user && (
               <Link

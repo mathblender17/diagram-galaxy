@@ -1,5 +1,5 @@
 
-import { Diagram, mockDiagrams, CitationFormat, generateCitation, mockCategories, Category } from "../data/diagramsData";
+import { Diagram, mockDiagrams, CitationFormat, generateCitation, mockCategories, Category, saveDiagramsToStorage } from "../data/diagramsData";
 
 // Mock API service
 export const api = {
@@ -36,20 +36,33 @@ export const api = {
       );
     },
     
-    like: async (id: string): Promise<Diagram | undefined> => {
+    like: async (id: string, userId: string): Promise<Diagram | undefined> => {
       await new Promise(resolve => setTimeout(resolve, 200));
       const diagram = mockDiagrams.find(d => d.id === id);
+      
       if (diagram) {
-        diagram.likes += 1;
+        // Check if user already liked this diagram
+        if (!diagram.likedByUserIds.includes(userId)) {
+          diagram.likes += 1;
+          diagram.likedByUserIds.push(userId);
+          saveDiagramsToStorage(mockDiagrams); // Persist the changes
+        }
       }
       return diagram;
     },
     
-    unlike: async (id: string): Promise<Diagram | undefined> => {
+    unlike: async (id: string, userId: string): Promise<Diagram | undefined> => {
       await new Promise(resolve => setTimeout(resolve, 200));
       const diagram = mockDiagrams.find(d => d.id === id);
-      if (diagram && diagram.likes > 0) {
-        diagram.likes -= 1;
+      
+      if (diagram) {
+        // Check if user has liked this diagram
+        const userLikeIndex = diagram.likedByUserIds.indexOf(userId);
+        if (userLikeIndex !== -1) {
+          diagram.likes -= 1;
+          diagram.likedByUserIds.splice(userLikeIndex, 1);
+          saveDiagramsToStorage(mockDiagrams); // Persist the changes
+        }
       }
       return diagram;
     },
@@ -67,6 +80,7 @@ export const api = {
           replies: [],
         };
         diagram.comments.push(comment);
+        saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
       return false;
@@ -97,6 +111,7 @@ export const api = {
           comment.replies = [];
         }
         comment.replies.push(reply);
+        saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
       return false;
@@ -111,6 +126,7 @@ export const api = {
       const commentIndex = diagram.comments.findIndex(c => c.id === commentId && c.userId === userId);
       if (commentIndex >= 0) {
         diagram.comments.splice(commentIndex, 1);
+        saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
       
@@ -120,6 +136,7 @@ export const api = {
           const replyIndex = comment.replies.findIndex(r => r.id === commentId && r.userId === userId);
           if (replyIndex >= 0) {
             comment.replies.splice(replyIndex, 1);
+            saveDiagramsToStorage(mockDiagrams); // Persist the changes
             return true;
           }
         }
@@ -128,7 +145,7 @@ export const api = {
       return false;
     },
     
-    uploadDiagram: async (diagram: Omit<Diagram, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'likes' | 'approved'>): Promise<Diagram> => {
+    uploadDiagram: async (diagram: Omit<Diagram, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'likes' | 'approved' | 'likedByUserIds'>): Promise<Diagram> => {
       await new Promise(resolve => setTimeout(resolve, 800));
       const newDiagram: Diagram = {
         ...diagram,
@@ -137,9 +154,11 @@ export const api = {
         updatedAt: new Date(),
         comments: [],
         likes: 0,
+        likedByUserIds: [], // Initialize empty array
         approved: false,
       };
       mockDiagrams.unshift(newDiagram);
+      saveDiagramsToStorage(mockDiagrams); // Persist the changes
       return newDiagram;
     },
     
@@ -148,6 +167,7 @@ export const api = {
       const diagram = mockDiagrams.find(d => d.id === id);
       if (diagram) {
         diagram.approved = true;
+        saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
       return false;
@@ -158,6 +178,7 @@ export const api = {
       const index = mockDiagrams.findIndex(d => d.id === id);
       if (index >= 0) {
         mockDiagrams.splice(index, 1);
+        saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
       return false;

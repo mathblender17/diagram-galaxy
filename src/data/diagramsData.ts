@@ -48,6 +48,7 @@ export type Diagram = {
   subject: string;
   tags: string[];
   likes: number;
+  likedByUserIds: string[]; // Track which users have liked this diagram
   comments: Comment[];
   approved: boolean;
   createdAt: Date;
@@ -57,6 +58,7 @@ export type Diagram = {
   year?: number;
 };
 
+// Define complexity levels as proper type
 const complexityLevels = ["Basic", "Intermediate", "Advanced"] as const;
 type ComplexityLevel = typeof complexityLevels[number];
 
@@ -81,7 +83,7 @@ const generateMockDiagrams = (): Diagram[] => {
     'Bacterial Ecology'
   ];
   
-  const complexities = ['Basic', 'Intermediate', 'Advanced'] as const;
+  const complexities: ComplexityLevel[] = ['Basic', 'Intermediate', 'Advanced'];
   
   const subjects = [
     'Escherichia coli',
@@ -141,6 +143,7 @@ const generateMockDiagrams = (): Diagram[] => {
       subject,
       tags: generateRandomTags(category, subject),
       likes: Math.floor(Math.random() * 100),
+      likedByUserIds: [], // Initialize empty array to track user likes
       comments: [],
       approved: Math.random() > 0.1, // 90% are approved
       createdAt: new Date(Date.now() - Math.floor(Math.random() * 10000000000)),
@@ -187,7 +190,56 @@ const generateMockDiagrams = (): Diagram[] => {
   return diagrams;
 };
 
-export const mockDiagrams = generateMockDiagrams();
+// Create a function to handle diagram persistence using localStorage
+const getPersistedDiagrams = (): Diagram[] => {
+  const storageDiagramsKey = 'bacteria-diagrams-data';
+  
+  // Try to get diagrams from localStorage
+  const storedDiagramsStr = localStorage.getItem(storageDiagramsKey);
+  
+  if (storedDiagramsStr) {
+    try {
+      // Parse the stored JSON string
+      const parsedData = JSON.parse(storedDiagramsStr);
+      
+      // Convert string dates back to Date objects
+      const diagramsWithDates = parsedData.map((diagram: any) => ({
+        ...diagram,
+        createdAt: new Date(diagram.createdAt),
+        updatedAt: new Date(diagram.updatedAt),
+        comments: diagram.comments.map((comment: any) => ({
+          ...comment,
+          timestamp: new Date(comment.timestamp),
+          replies: comment.replies?.map((reply: any) => ({
+            ...reply,
+            timestamp: new Date(reply.timestamp)
+          }))
+        }))
+      }));
+      
+      return diagramsWithDates;
+    } catch (error) {
+      console.error('Error parsing stored diagrams:', error);
+      // If there's an error, generate fresh diagrams
+      const newDiagrams = generateMockDiagrams();
+      saveDiagramsToStorage(newDiagrams);
+      return newDiagrams;
+    }
+  }
+  
+  // If no stored diagrams, generate new ones and save them
+  const newDiagrams = generateMockDiagrams();
+  saveDiagramsToStorage(newDiagrams);
+  return newDiagrams;
+};
+
+// Helper function to save diagrams to localStorage
+export const saveDiagramsToStorage = (diagrams: Diagram[]): void => {
+  localStorage.setItem('bacteria-diagrams-data', JSON.stringify(diagrams));
+};
+
+// Initialize diagrams with persistence
+export const mockDiagrams = getPersistedDiagrams();
 
 // Generate categories from the unique DiagramCategory values in the diagrams
 export const mockCategories: Category[] = [

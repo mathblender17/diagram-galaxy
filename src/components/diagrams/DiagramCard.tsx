@@ -1,10 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   Heart, 
-  MessageSquare, 
-  Eye
+  MessageSquare
 } from "lucide-react";
 import { Diagram } from "@/data/diagramsData";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +20,14 @@ export function DiagramCard({ diagram, onLikeUpdate }: DiagramCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [likes, setLikes] = useState(diagram.likes);
-  const [isLiked, setIsLiked] = useState(false); // In a real app, this would be fetched from the backend
+  const [isLiked, setIsLiked] = useState(false);
+
+  // Check if the current user has liked this diagram
+  useEffect(() => {
+    if (user && diagram.likedByUserIds) {
+      setIsLiked(diagram.likedByUserIds.includes(user.id));
+    }
+  }, [user, diagram.likedByUserIds]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,24 +43,24 @@ export function DiagramCard({ diagram, onLikeUpdate }: DiagramCardProps) {
     }
     
     try {
+      let updatedDiagram;
+      
       if (isLiked) {
-        const updatedDiagram = await api.diagrams.unlike(diagram.id);
+        updatedDiagram = await api.diagrams.unlike(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
           setIsLiked(false);
-          if (onLikeUpdate) {
-            onLikeUpdate(updatedDiagram);
-          }
         }
       } else {
-        const updatedDiagram = await api.diagrams.like(diagram.id);
+        updatedDiagram = await api.diagrams.like(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
           setIsLiked(true);
-          if (onLikeUpdate) {
-            onLikeUpdate(updatedDiagram);
-          }
         }
+      }
+      
+      if (updatedDiagram && onLikeUpdate) {
+        onLikeUpdate(updatedDiagram);
       }
     } catch (error) {
       console.error("Error updating like status:", error);
@@ -77,7 +83,7 @@ export function DiagramCard({ diagram, onLikeUpdate }: DiagramCardProps) {
           />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
             <div className="flex items-center text-white space-x-3">
-              <div className="flex items-center space-x-1" onClick={handleLike}>
+              <div className="flex items-center space-x-1 cursor-pointer" onClick={handleLike}>
                 <Heart className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                 <span className="text-sm">{likes}</span>
               </div>

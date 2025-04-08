@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { DiagramDetail } from "@/components/diagrams/DiagramDetail";
@@ -21,31 +20,39 @@ export default function DiagramDetailPage() {
   const { toast } = useToast();
   const { isAdmin } = useAuth();
 
-  useEffect(() => {
-    const fetchDiagram = async () => {
-      if (!id) return;
-      
-      setLoading(true);
-      
-      try {
-        const data = await api.diagrams.getById(id);
-        
-        if (!data) {
-          setError("Diagram not found");
-          return;
-        }
-        
-        setDiagram(data);
-      } catch (err) {
-        console.error("Error fetching diagram:", err);
-        setError("Failed to load diagram. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDiagram = useCallback(async () => {
+    if (!id) return;
     
-    fetchDiagram();
+    setLoading(true);
+    
+    try {
+      console.log(`Fetching diagram with id: ${id}`);
+      const data = await api.diagrams.getById(id);
+      
+      if (!data) {
+        setError("Diagram not found");
+        return;
+      }
+      
+      console.log("Diagram loaded:", data);
+      console.log("Comment count:", data.comments.length);
+      setDiagram(data);
+    } catch (err) {
+      console.error("Error fetching diagram:", err);
+      setError("Failed to load diagram. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchDiagram();
+  }, [fetchDiagram]);
+
+  const handleDiagramUpdate = async (updatedDiagram: Diagram) => {
+    setDiagram(updatedDiagram);
+    await fetchDiagram();
+  };
 
   const handleLikeUpdate = (updatedDiagram: Diagram) => {
     setDiagram(updatedDiagram);
@@ -158,7 +165,6 @@ export default function DiagramDetailPage() {
     );
   }
 
-  // Handle non-approved diagrams
   if (!diagram.approved && !isAdmin()) {
     return (
       <Layout>
@@ -195,7 +201,7 @@ export default function DiagramDetailPage() {
         )}
       </div>
       
-      <DiagramDetail diagram={diagram} onLikeUpdate={handleLikeUpdate} />
+      <DiagramDetail diagram={diagram} onLikeUpdate={handleDiagramUpdate} />
       
       <div className="mt-12 pt-6 border-t border-gray-200">
         <h2 className="text-2xl font-bold mb-6">Related Diagrams</h2>

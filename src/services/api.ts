@@ -1,4 +1,3 @@
-
 import { Diagram, mockDiagrams, CitationFormat, generateCitation, mockCategories, Category, saveDiagramsToStorage } from "../data/diagramsData";
 
 // Mock API service
@@ -45,6 +44,7 @@ export const api = {
         if (!diagram.likedByUserIds.includes(userId)) {
           diagram.likes += 1;
           diagram.likedByUserIds.push(userId);
+          console.log(`User ${userId} liked diagram ${id}`);
           saveDiagramsToStorage(mockDiagrams); // Persist the changes
         }
       }
@@ -61,6 +61,7 @@ export const api = {
         if (userLikeIndex !== -1) {
           diagram.likes -= 1;
           diagram.likedByUserIds.splice(userLikeIndex, 1);
+          console.log(`User ${userId} unliked diagram ${id}`);
           saveDiagramsToStorage(mockDiagrams); // Persist the changes
         }
       }
@@ -69,6 +70,8 @@ export const api = {
     
     addComment: async (diagramId: string, userId: string, userName: string, text: string): Promise<boolean> => {
       await new Promise(resolve => setTimeout(resolve, 300));
+      console.log(`Adding comment to diagram ${diagramId} by user ${userId}: ${text}`);
+      
       const diagram = mockDiagrams.find(d => d.id === diagramId);
       if (diagram) {
         const comment = {
@@ -79,10 +82,13 @@ export const api = {
           timestamp: new Date(),
           replies: [],
         };
+        console.log("Created new comment object:", comment);
         diagram.comments.push(comment);
+        console.log(`Comment added to diagram. New comment count: ${diagram.comments.length}`);
         saveDiagramsToStorage(mockDiagrams); // Persist the changes
         return true;
       }
+      console.log("Diagram not found for comment");
       return false;
     },
     

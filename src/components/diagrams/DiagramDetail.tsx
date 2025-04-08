@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Download,
   Heart,
@@ -54,6 +54,13 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
   const [showCitationDialog, setShowCitationDialog] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState<string>("png");
   const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
+  
+  // Check if the current user has liked this diagram
+  useEffect(() => {
+    if (user && diagram.likedByUserIds) {
+      setIsLiked(diagram.likedByUserIds.includes(user.id));
+    }
+  }, [user, diagram.likedByUserIds]);
 
   const handleLike = async () => {
     if (!user) {
@@ -67,7 +74,8 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
     
     try {
       if (isLiked) {
-        const updatedDiagram = await api.diagrams.unlike(diagram.id);
+        // Fix: Pass both diagram.id and user.id
+        const updatedDiagram = await api.diagrams.unlike(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
           setIsLiked(false);
@@ -76,7 +84,8 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
           }
         }
       } else {
-        const updatedDiagram = await api.diagrams.like(diagram.id);
+        // Fix: Pass both diagram.id and user.id
+        const updatedDiagram = await api.diagrams.like(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
           setIsLiked(true);

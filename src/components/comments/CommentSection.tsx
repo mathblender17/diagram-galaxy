@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Comment } from "@/data/diagramsData";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
@@ -22,6 +22,12 @@ export function CommentSection({ diagramId, comments: initialComments }: Comment
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  
+  // Sync comments when initialComments changes
+  useEffect(() => {
+    console.log("Initial comments updated:", initialComments);
+    setComments(initialComments);
+  }, [initialComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,14 +51,18 @@ export function CommentSection({ diagramId, comments: initialComments }: Comment
     }
     
     setIsSubmitting(true);
+    console.log("Submitting comment:", commentText);
     
     try {
+      console.log("Adding comment for diagram:", diagramId);
       const success = await api.diagrams.addComment(
         diagramId, 
         user.id, 
         user.name, 
         commentText
       );
+      
+      console.log("Comment submission response:", success);
       
       if (success) {
         // In a real app, you would fetch the updated comments
@@ -66,7 +76,9 @@ export function CommentSection({ diagramId, comments: initialComments }: Comment
           replies: [],
         };
         
-        setComments([newComment, ...comments]);
+        console.log("Adding new comment to UI:", newComment);
+        // Create a new array to ensure React detects the state change
+        setComments(prevComments => [newComment, ...prevComments]);
         setCommentText("");
         
         toast({

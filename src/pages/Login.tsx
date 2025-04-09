@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Mail, Lock, Github, Globe } from "lucide-react";
+import { BookOpen, Mail, Lock, Github, Globe, ShieldCheck } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -37,6 +37,18 @@ export default function Login() {
     } catch (error) {
       console.error("Login error:", error);
       // Error handling is done in the auth context
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdminLogin = async () => {
+    setIsLoading(true);
+    try {
+      await login("admin@gmail.com", "admin123");
+      navigate("/admin");
+    } catch (error) {
+      console.error("Admin login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +111,18 @@ export default function Login() {
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
+
+            <div className="my-4">
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-center gap-2" 
+                onClick={handleAdminLogin}
+                disabled={isLoading}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                {isLoading ? "Logging in..." : "Admin Login"}
+              </Button>
+            </div>
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">

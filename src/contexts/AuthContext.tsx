@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { User } from "../data/diagramsData";
 import { api } from "../services/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   // Check for existing user session on mount
-  useState(() => {
+  useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
@@ -32,11 +32,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("user");
       }
     }
-  });
+  }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Special case for admin login
+      if (email === "admin@gmail.com" && password === "admin123") {
+        const adminUser: User = {
+          id: "admin-1",
+          name: "Administrator",
+          email: "admin@gmail.com",
+          role: "admin",
+        };
+        setUser(adminUser);
+        localStorage.setItem("user", JSON.stringify(adminUser));
+        toast({
+          title: "Admin login successful",
+          description: "Welcome, Administrator!",
+        });
+        return;
+      }
+      
+      // Regular user login
       const user = await api.users.login(email, password);
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));

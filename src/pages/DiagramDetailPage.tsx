@@ -9,7 +9,7 @@ import { api } from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DiagramDetailPage() {
@@ -17,6 +17,7 @@ export default function DiagramDetailPage() {
   const [diagram, setDiagram] = useState<Diagram | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAdmin } = useAuth();
@@ -25,6 +26,7 @@ export default function DiagramDetailPage() {
     if (!id) return;
     
     setLoading(true);
+    setImageError(false);
     
     try {
       console.log(`Fetching diagram with id: ${id}`);
@@ -50,6 +52,11 @@ export default function DiagramDetailPage() {
   useEffect(() => {
     fetchDiagram();
   }, [fetchDiagram]);
+
+  const handleImageError = () => {
+    console.error("Image failed to load:", diagram?.imageUrl);
+    setImageError(true);
+  };
 
   const handleDiagramUpdate = async (updatedDiagram: Diagram) => {
     setDiagram(updatedDiagram);
@@ -203,7 +210,22 @@ export default function DiagramDetailPage() {
         )}
       </div>
       
-      <DiagramDetail diagram={diagram} onLikeUpdate={handleDiagramUpdate} />
+      {imageError && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 flex items-center space-x-3">
+          <AlertCircle className="h-5 w-5 text-yellow-500" />
+          <div>
+            <p className="text-sm text-yellow-800">
+              The image could not be displayed. Using placeholder instead.
+            </p>
+          </div>
+        </div>
+      )}
+      
+      <DiagramDetail 
+        diagram={diagram} 
+        onLikeUpdate={handleDiagramUpdate}
+        onImageError={handleImageError}
+      />
       
       <div className="mt-12 pt-6 border-t border-gray-200">
         <h2 className="text-2xl font-bold mb-6">Related Diagrams</h2>

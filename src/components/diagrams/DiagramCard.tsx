@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   Heart, 
-  MessageSquare
+  MessageSquare,
+  ImageOff 
 } from "lucide-react";
 import { Diagram } from "@/data/diagramsData";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +22,7 @@ export function DiagramCard({ diagram, onLikeUpdate }: DiagramCardProps) {
   const { toast } = useToast();
   const [likes, setLikes] = useState(diagram.likes);
   const [isLiked, setIsLiked] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Check if the current user has liked this diagram
   useEffect(() => {
@@ -72,15 +74,28 @@ export function DiagramCard({ diagram, onLikeUpdate }: DiagramCardProps) {
     }
   };
 
+  const handleImageError = () => {
+    console.error("Image failed to load:", diagram.thumbnailUrl || diagram.imageUrl);
+    setImageError(true);
+  };
+
   return (
     <Link to={`/diagram/${diagram.id}`}>
       <Card className="h-full diagram-card overflow-hidden">
         <div className="relative h-48 overflow-hidden">
-          <img
-            src={diagram.thumbnailUrl}
-            alt={diagram.title}
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-          />
+          {imageError ? (
+            <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center">
+              <ImageOff className="h-8 w-8 text-gray-400 mb-2" />
+              <p className="text-xs text-gray-500 px-2 text-center">{diagram.title}</p>
+            </div>
+          ) : (
+            <img
+              src={diagram.thumbnailUrl || diagram.imageUrl}
+              alt={diagram.title}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+              onError={handleImageError}
+            />
+          )}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
             <div className="flex items-center text-white space-x-3">
               <div className="flex items-center space-x-1 cursor-pointer" onClick={handleLike}>

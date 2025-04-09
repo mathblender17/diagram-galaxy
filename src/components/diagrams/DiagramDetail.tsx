@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Download,
@@ -8,7 +7,8 @@ import {
   X,
   Check,
   Copy,
-  ChevronDown
+  ChevronDown,
+  ImageOff
 } from "lucide-react";
 import { Diagram, CitationFormat } from "@/data/diagramsData";
 import { api } from "@/services/api";
@@ -44,9 +44,10 @@ import { Badge } from "@/components/ui/badge";
 interface DiagramDetailProps {
   diagram: Diagram;
   onLikeUpdate?: (diagram: Diagram) => void;
+  onImageError?: () => void;
 }
 
-export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
+export function DiagramDetail({ diagram, onLikeUpdate, onImageError }: DiagramDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [likes, setLikes] = useState(diagram.likes);
@@ -54,13 +55,21 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
   const [showCitationDialog, setShowCitationDialog] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState<string>("png");
   const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
   
-  // Check if the current user has liked this diagram
   useEffect(() => {
     if (user && diagram.likedByUserIds) {
       setIsLiked(diagram.likedByUserIds.includes(user.id));
     }
   }, [user, diagram.likedByUserIds]);
+
+  const handleImageError = () => {
+    console.error("Image failed to load:", diagram.imageUrl);
+    setImageLoadError(true);
+    if (onImageError) {
+      onImageError();
+    }
+  };
 
   const handleLike = async () => {
     if (!user) {
@@ -74,7 +83,6 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
     
     try {
       if (isLiked) {
-        // Fix: Pass both diagram.id and user.id
         const updatedDiagram = await api.diagrams.unlike(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
@@ -84,7 +92,6 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
           }
         }
       } else {
-        // Fix: Pass both diagram.id and user.id
         const updatedDiagram = await api.diagrams.like(diagram.id, user.id);
         if (updatedDiagram) {
           setLikes(updatedDiagram.likes);
@@ -105,13 +112,11 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
   };
 
   const handleDownload = () => {
-    // In a real app, you would implement actual file download
     toast({
       title: "Download started",
       description: `Downloading diagram in ${downloadFormat.toUpperCase()} format`,
     });
     
-    // Simulate download delay
     setTimeout(() => {
       toast({
         title: "Download complete",
@@ -121,7 +126,6 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
   };
 
   const handleShare = () => {
-    // In a real app, you would implement actual sharing functionality
     navigator.clipboard.writeText(window.location.href);
     toast({
       title: "Link copied",
@@ -148,11 +152,21 @@ export function DiagramDetail({ diagram, onLikeUpdate }: DiagramDetailProps) {
     <div>
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div className="relative">
-          <img
-            src={diagram.imageUrl}
-            alt={diagram.title}
-            className="w-full object-cover max-h-[600px]"
-          />
+          {imageLoadError ? (
+            <div className="w-full h-[400px] bg-gray-100 flex flex-col items-center justify-center">
+              <ImageOff className="h-16 w-16 text-gray-400 mb-4" />
+              <p className="text-gray-500 font-medium">Image could not be loaded</p>
+              <p className="text-gray-400 text-sm mt-2">URL: {diagram.imageUrl}</p>
+              <p className="text-gray-400 text-sm mt-1">Title: {diagram.title}</p>
+            </div>
+          ) : (
+            <img
+              src={diagram.imageUrl}
+              alt={diagram.title}
+              className="w-full object-cover max-h-[600px]"
+              onError={handleImageError}
+            />
+          )}
         </div>
         <div className="p-6">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">

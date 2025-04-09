@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -35,6 +36,7 @@ export default function DiagramDetailPage() {
       }
       
       console.log("Diagram loaded:", data);
+      console.log("Image URL:", data.imageUrl);
       console.log("Comment count:", data.comments.length);
       setDiagram(data);
     } catch (err) {

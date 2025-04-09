@@ -12,7 +12,36 @@ export const api = {
     
     getById: async (id: string): Promise<Diagram | undefined> => {
       await new Promise(resolve => setTimeout(resolve, 300));
-      return mockDiagrams.find(diagram => diagram.id === id);
+      const diagram = mockDiagrams.find(diagram => diagram.id === id);
+      if (diagram) {
+        console.log(`Retrieved diagram: ${diagram.title}, image: ${diagram.imageUrl}`);
+      }
+      return diagram;
+    },
+    
+    checkImageUrls: async (): Promise<{valid: number, invalid: number, urls: string[]}> => {
+      const validUrls: string[] = [];
+      const invalidUrls: string[] = [];
+      
+      for (const diagram of mockDiagrams) {
+        try {
+          const response = await fetch(diagram.imageUrl, { method: 'HEAD' });
+          if (response.ok) {
+            validUrls.push(diagram.imageUrl);
+          } else {
+            invalidUrls.push(diagram.imageUrl);
+          }
+        } catch (error) {
+          invalidUrls.push(diagram.imageUrl);
+        }
+      }
+      
+      console.log(`Valid URLs: ${validUrls.length}, Invalid URLs: ${invalidUrls.length}`);
+      return {
+        valid: validUrls.length,
+        invalid: invalidUrls.length,
+        urls: invalidUrls
+      };
     },
     
     getByCategory: async (category: string): Promise<Diagram[]> => {
@@ -211,7 +240,6 @@ export const api = {
   // User operations
   users: {
     login: async (email: string, password: string) => {
-      // This is a mock function - in a real app, you'd authenticate against a backend
       await new Promise(resolve => setTimeout(resolve, 500));
       if (email && password.length >= 6) {
         return {
@@ -225,7 +253,6 @@ export const api = {
     },
     
     register: async (name: string, email: string, password: string, role: string) => {
-      // This is a mock function
       await new Promise(resolve => setTimeout(resolve, 700));
       if (email && password.length >= 6) {
         return {
